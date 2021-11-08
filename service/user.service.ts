@@ -4,7 +4,7 @@ export class UserService {
     database: MongoClientService;
 
     constructor() {
-        this.database = new MongoClientService(3000); 
+        this.database = new MongoClientService(); 
     }
 
     createUser() {

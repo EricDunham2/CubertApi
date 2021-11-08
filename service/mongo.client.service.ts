@@ -1,11 +1,20 @@
 import { MongoClient } from "mongodb";
 
 export class MongoClientService {
-    client: MongoClient;
+    private client: MongoClient;
+    private static instance: MongoClientService;
 
-    constructor(port: number) {
-        const url: string = `mongodb://localhost:${port}`;
+    constructor() {
+        const url: string = `mongodb://localhost:27017`;
         this.client = new MongoClient(url);
+    }
+
+    public static getInstance(): MongoClientService {
+        if (!MongoClientService.instance) {
+            MongoClientService.instance = new MongoClientService();
+        }
+
+        return MongoClientService.instance;
     }
 
     async connect(dbName: string, coll: string) {

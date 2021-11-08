@@ -1,41 +1,63 @@
+import { CubeDto } from "../dto/cube.dto";
 import { MongoClientService } from "./mongo.client.service";
+import { FindCursor, Document } from 'mongodb';
 
 export class CubeService {
     database: MongoClientService;
 
     constructor() {
-        this.database = new MongoClientService(3000); 
+        this.database = MongoClientService.getInstance();
     }
 
-    createCube() {
-        this.database.connect("cubert", "cubes")
-        .then(collection => {
-            //Insert cube into database with name and values
+    createCube(cube: CubeDto) {
+        let res;
+        //Array<number> | Array<Array<number>> | MappedText
+        this.database.connect("cubert", "cubes").then(col => {
+            res = col.insertOne(cube);
+        });
+
+        return res
+    }
+
+    deleteCube(cubeId: number) {
+        this.database.connect("cubert", "cubes").then(col => {
+            col.deleteOne({ id: cubeId })
         }).catch(e => {
             console.error(e);
         });
     }
 
-    deleteCube(id: number, userId: number) {
-        this.database.connect("cubert", "cubes")
-        .then(collection => {
-            //Delete cube from database with id confirming cube belongs to user
-        }).catch(e => {
-            console.error(e);
+    updateCube(cube: CubeDto) {
+        let res;
+        //Array<number> | Array<Array<number>> | MappedText
+        this.database.connect("cubert", "cubes").then(col => {
+            res = col.updateOne(
+                { id: cube.id },
+                { $set: cube }
+            );
         });
+
+        return res
     }
 
-    updateCube(id: number, userId: number) {
-        this.database.connect("cubert", "cubes")
-        .then(collection => {
-            //Update cube from database with id confirming cube belongs to user
-        }).catch(e => {
-            console.error(e);
+    getCube(cubeId: number): (FindCursor<Document> | null) {
+        let result = null;
+
+        this.database.connect("cubert", "cubes").then(col => {
+            result = col.find({ id: cubeId });
         });
+
+        return result
     }
 
-    getCube() {
+    getAllCubes():(FindCursor<Document> | null) {
+        let results = null;
 
+        this.database.connect("cubert", "cubes").then(col => {
+            results = col.find({}).toArray()
+        });
+
+        return results;
     }
 }
 

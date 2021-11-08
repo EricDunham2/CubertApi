@@ -19,7 +19,6 @@ export class CubeRoutes extends CommonRoutesConfig {
             })
             .post((req: express.Request, res:express.Response) => {
 
-                console.log(this.cube.cube(req.query.colors as Array<string>, req.query.mode as InterpolationMode));
                 res.status(200).send('Post to cube');
             });
 
@@ -29,12 +28,12 @@ export class CubeRoutes extends CommonRoutesConfig {
                 next();
             })
             .get((req: express.Request, res: express.Response) => {
-                //Get cube with id
+                let cubeId: number = parseInt(req.params.cubeId as string)
 
+                this.cube.getCube(cubeId);
                 res.status(200).send(`GET request for id ${req.params.cubeId}`);
             })
             .post((req: express.Request, res: express.Response) => {
-                //Create new cube with id
 
                 res.status(200).send(`POST request for id ${req.params.cubeId}`);
             })
@@ -44,36 +43,47 @@ export class CubeRoutes extends CommonRoutesConfig {
                 res.status(200).send(`PATCH request for id ${req.params.cubeId}`);
             })
             .delete((req: express.Request, res: express.Response) => {
-                //Remove cube with id
+                let cubeId: number = parseInt(req.params.cubeId as string)
 
+                this.cube.deleteCube(cubeId);
                 res.status(200).send(`DELETE request for id ${req.params.cubeId}`);
             });
 
-        this.app.route('/cube/apply')
+        this.app.route('/cube/transition')
             .post((req: express.Request, res: express.Response) => {
-                //Apply the current cube color
+                let top: Array<string> = req.query.top as Array<string>;
+                let bottom: Array<string> = req.query.bottom as Array<string>;
+                let mode: InterpolationMode = req.query.mode as InterpolationMode;
+                let interval: number = parseInt(req.query.interval as string);
+                let steps: number =  parseInt(req.query.steps as string);
+                let loop: boolean = Boolean(req.query.loop);
 
-                res.status(200).send(`POST request for id ${req.params.cubeId}`);
+                let resp = this.cube.transition(top, bottom, mode, interval, steps, loop);
+                res.status(200).send(resp);
+            });
+
+        this.app.route('/cube/text')
+            .post((req: express.Request, res: express.Response) => {
+                let message: string = req.query.message as string;
+                let background: number = parseInt(req.query.interval as string);
+                let foreground: number =  parseInt(req.query.steps as string);
+
+                let resp = this.cube.text(message, background, foreground);
+                res.status(200).send(resp);
+            });
+
+        this.app.route('/cube/cube')
+            .post((req: express.Request, res: express.Response) => {
+                let colors: Array<string> = req.query.colors as Array<string>;
+                let mode: InterpolationMode = req.query.mode as InterpolationMode;
+
+                let resp = this.cube.drawCube(colors, mode);
+                res.status(200).send(resp);
             });
 
         this.app.route('/cube/power')
             .post((req: express.Request, res: express.Response) => {
                 //Power on/off the cube
-
-                res.status(200).send(`POST request for id ${req.params.cubeId}`);
-            });
-
-        this.app.route('/cube/settings')
-            .all((req: express.Request, res: express.Response, next: express.NextFunction) => {
-                next();
-            })
-            .get((req: express.Request, res: express.Response) => {
-                //Get the cube settings
-
-                res.status(200).send(`GET request for id ${req.params.cubeId}`);
-            })
-            .post((req: express.Request, res: express.Response) => {
-                //Update the cube settings
 
                 res.status(200).send(`POST request for id ${req.params.cubeId}`);
             });

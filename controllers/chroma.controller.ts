@@ -40,6 +40,25 @@ export function bilinearGradient(colors: Array<(string | Color)>, mode: Interpol
     return arrBuf
 }
 
+export function cubeGradient(colors: Array<(string | Color)>, mode: InterpolationMode, width: number) {
+    let buf: Array<number> = [];
+    buf = buf.concat.apply(bilinearGradient(colors, mode));
+
+    let clrCpy = colors.slice(0, colors.length);
+    let start = String(colors.pop());
+
+    colors.reverse().push(start);
+    colors.reverse();
+
+    buf = buf.concat.apply(bilinearGradient(colors, mode));
+    buf = buf.concat.apply(linearGradient(clrCpy[0], clrCpy[1], width, mode));
+    buf = buf.concat.apply(linearGradient(clrCpy[1], clrCpy[2], width, mode));
+    buf = buf.concat.apply(linearGradient(clrCpy[2], clrCpy[3], width, mode));
+    buf = buf.concat.apply(linearGradient(clrCpy[3], clrCpy[0], width, mode));
+
+    return buf;
+}
+
 export function blend(color1: (string | Color), color2: (string | Color), steps: number, mode: InterpolationMode) {
     return chroma.scale([color1, color2]).domain([0, steps]).mode(mode);
 }

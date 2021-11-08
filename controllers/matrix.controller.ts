@@ -1,19 +1,38 @@
 import { LedMatrix, LedMatrixInstance, Color, MappedGlyph } from 'rpi-led-matrix';
 import { FontInstance } from 'rpi-led-matrix/dist/types';
 import { matrixOptions, runtimeOptions } from '../common/matrix.config';
+import { MatrixOptions, RuntimeOptions } from "rpi-led-matrix";
+import { Graident, isGradient, isMappedText, MappedText } from '../common/types';
 
 declare type SyncHook = (this: LedMatrixInstance, matrix: LedMatrixInstance, dt: number, t: number) => any;
 
 export class MatrixController {
+    private static instance: MatrixController;
     private matrix: LedMatrixInstance;
-    wait: (t: number) => Promise<unknown>;
+    private saveState?: Graident | MappedText;
+    wait = (t: number) => new Promise(ok => setTimeout(ok, t));
 
     constructor() {
         this.matrix = new LedMatrix(matrixOptions, runtimeOptions);
-        this.wait = (t: number) => new Promise(ok => setTimeout(ok, t));
+    }
+
+    public static getInstance(): MatrixController {
+        if (!MatrixController.instance) {
+            MatrixController.instance = new MatrixController();
+        }
+
+        return MatrixController.instance;
+    }
+
+    updateMatrixSettings(matrixOptions: MatrixOptions, runtimeOptions: RuntimeOptions) {
+        console.log(`Updating the matrix settings`);
+
+        this.matrix = new LedMatrix(matrixOptions, runtimeOptions);
     }
 
     drawBuffer(buffer: Array<number>) {
+        console.log(`Drawing buffer`);
+
         (async () => {
             try {
                 this.matrix.afterSync(() => {
@@ -43,7 +62,7 @@ export class MatrixController {
                         step = 0;
                     }
                 });
-        
+
                 this.matrix.sync();
                 await this.wait(interval);
             } catch (error) {
@@ -53,6 +72,8 @@ export class MatrixController {
     }
 
     drawText(message: MappedGlyph[]) {
+        console.log(`Drawing text`);
+
         (async () => {
             message.map(glyph => {
                 this.matrix.drawText(glyph.char, glyph.x, glyph.y);
@@ -96,5 +117,30 @@ export class MatrixController {
 
     getHeight() {
         return this.matrix.height();
+    }
+
+    getSaveState() {
+        return this.saveState;
+    }
+
+    setSaveState(data: Graident | MappedText) {
+        this.saveState = data;
+    }
+
+    loadSaveState() {
+        if (isGradient(this.saveState)) {
+            let cube: Graident = this.saveState;
+
+            if (cube.interval) {
+                this.drawBuffers(cube.buffer as Array<Array<number>>, cube.interval, cube.loop as boolean);
+            } else {
+                this.drawBuffer(cube.buffer as Array<number>);
+            }
+        } else if (isMappedText(this.saveState)) {
+            this.setBackground(this.saveState.background);
+            this.setForeground(this.saveState.foreground);
+
+            this.drawText(this.saveState.text);
+        }
     }
 }

@@ -1,17 +1,24 @@
 import { MatrixController } from './matrix.controller';
-import { bilinearGradient, linearGradient, blend } from "../controllers/chroma.controller";
+import { blend, cubeGradient } from "../controllers/chroma.controller";
 import { Color, InterpolationMode } from 'chroma-js';
 import { Font, HorizontalAlignment, LayoutUtils, MappedGlyph, VerticalAlignment } from 'rpi-led-matrix';
+import { Graident, MappedText } from '../common/types';
+import { CubeDto } from '../dto/cube.dto';
+import { CubeService } from '../service/cube.service';
+import { FindCursor, Document } from 'mongodb';
 
 export class CubeController {
-    matrix: MatrixController;
+    private matrix: MatrixController;
+    private cubeService: CubeService;
+    private powerState: boolean;
 
     constructor() {
-        this.matrix = new MatrixController();
+        this.matrix = MatrixController.getInstance();
+        this.cubeService = new CubeService();
+        this.powerState = true;
     }
 
     transition(topColors: Array<string>, bottomColors: Array<string>, mode: InterpolationMode, interval: number, steps: number, loop: boolean) {
-
         let buffers: Array<Array<number>> = [];
         let step: number = 0;
 
@@ -28,31 +35,29 @@ export class CubeController {
             colors.push(blend3(step));
             colors.push(blend4(step));
 
-            buffers.push(this.cube(colors, mode));
+            buffers.push(cubeGradient(colors, mode, this.matrix.getWidth()));
 
             step++;
         }
 
+        let cube: Graident = {
+            buffer: buffers,
+            interval: interval,
+            loop: loop
+        }
+
+        this.matrix.setSaveState(cube);
         this.matrix.drawBuffers(buffers, interval, loop);
     }
 
-    cube(colors: Array<(string | Color)>, mode: InterpolationMode) {
-        let buf: Array<number> = [];
-        buf = buf.concat.apply(bilinearGradient(colors, mode));
+    drawCube(colors: Array<(string | Color)>, mode: InterpolationMode) {
+        let buf: Array<number> = cubeGradient(colors, mode, this.matrix.getWidth());
+        let cube: Graident = {
+            buffer: buf,
+        };
 
-        let clrCpy = colors.slice(0, colors.length);
-        let start = String(colors.pop());
-
-        colors.reverse().push(start);
-        colors.reverse();
-
-        buf = buf.concat.apply(bilinearGradient(colors, mode));
-        buf = buf.concat.apply(linearGradient(clrCpy[0], clrCpy[1], this.matrix.getWidth(), mode));
-        buf = buf.concat.apply(linearGradient(clrCpy[1], clrCpy[2], this.matrix.getWidth(), mode));
-        buf = buf.concat.apply(linearGradient(clrCpy[2], clrCpy[3], this.matrix.getWidth(), mode));
-        buf = buf.concat.apply(linearGradient(clrCpy[3], clrCpy[0], this.matrix.getWidth(), mode));
-
-        return buf
+        this.matrix.setSaveState(cube);
+        this.matrix.drawBuffer(buf);
     }
 
     text(message: string, background: number, foreground: number) {
@@ -66,10 +71,61 @@ export class CubeController {
 
         for (const alignmentH of [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right]) {
             for (const alignmentV of [VerticalAlignment.Top, VerticalAlignment.Middle, VerticalAlignment.Bottom]) {
-                let glyphs: MappedGlyph[] = LayoutUtils.linesToMappedGlyphs(lines, font.height(), this.matrix.getWidth(), this.matrix.getHeight(), alignmentH, alignmentV)
+                let glyphs: MappedGlyph[] = LayoutUtils.linesToMappedGlyphs(lines, font.height(), this.matrix.getWidth(), this.matrix.getHeight(), alignmentH, alignmentV);
+                
+                let save: MappedText = {
+                    text: glyphs,
+                    foreground: foreground,
+                    background:background,
+                };
+
+                this.matrix.setSaveState(save);
+
                 this.matrix.drawText(glyphs);
                 this.matrix.sync();
             }
         }
+    }
+
+    power() {
+        this.powerState = !this.powerState;
+
+        if (!this.powerState) {
+            this.matrix.clear();
+        } else {
+            this.matrix.loadSaveState();
+            return true;
+        }
+    }
+
+    getCube(cubeId: number): (FindCursor<Document> | null) {
+        //Case to cubedto
+        return this.cubeService.getCube(cubeId);
+    }
+
+    getAllCubes(): (FindCursor<Document> | null) {
+        //Case to Array of cubedto
+        return this.cubeService.getAllCubes();
+    }
+
+    setCube(userId: number, name: string, data: (Array<number> | Array<Array<number>> | MappedText), cubeId?: number, description?: string) {
+        let cube: CubeDto = {
+            name: name,
+            userId: userId,
+            data: data
+        }
+
+        description ? cube.description = description : null;
+        cubeId ? cube.id = cubeId : null;
+
+        if (cube.id) { 
+            this.cubeService.updateCube(cube);
+        } else {
+            this.cubeService.createCube(cube)
+        }
+    }
+
+    deleteCube(cubeId: number) {
+        this.cubeService.deleteCube(cubeId);
     }
 }

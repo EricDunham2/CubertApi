@@ -48,4 +48,4 @@ server.listen(port, () => {
     });
 
     console.log(runningMessage);
-})
+});
