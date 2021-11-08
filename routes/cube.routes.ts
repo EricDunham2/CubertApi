@@ -30,7 +30,7 @@ export class CubeRoutes extends CommonRoutesConfig {
             .get((req: express.Request, res: express.Response) => {
                 let cubeId: number = parseInt(req.params.cubeId as string)
 
-                this.cube.getCube(cubeId);
+                //this.cube.getCube(cubeId);
                 res.status(200).send(`GET request for id ${req.params.cubeId}`);
             })
             .post((req: express.Request, res: express.Response) => {
@@ -45,7 +45,7 @@ export class CubeRoutes extends CommonRoutesConfig {
             .delete((req: express.Request, res: express.Response) => {
                 let cubeId: number = parseInt(req.params.cubeId as string)
 
-                this.cube.deleteCube(cubeId);
+                //this.cube.deleteCube(cubeId);
                 res.status(200).send(`DELETE request for id ${req.params.cubeId}`);
             });
 
@@ -83,7 +83,7 @@ export class CubeRoutes extends CommonRoutesConfig {
 
         this.app.route('/cube/power')
             .post((req: express.Request, res: express.Response) => {
-                //Power on/off the cube
+                this.cube.power();
 
                 res.status(200).send(`POST request for id ${req.params.cubeId}`);
             });

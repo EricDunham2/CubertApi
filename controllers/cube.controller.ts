@@ -22,6 +22,12 @@ export class CubeController {
         let buffers: Array<Array<number>> = [];
         let step: number = 0;
 
+
+        
+        if (topColors.length !== 4 || bottomColors.length !== 4) {
+            throw new Error("Top and Bottom need 4 colors");
+        }
+
         let blend1 = blend(topColors[0], bottomColors[0], this.matrix.getWidth(), mode);
         let blend2 = blend(topColors[1], bottomColors[1], this.matrix.getWidth(), mode);
         let blend3 = blend(topColors[2], bottomColors[2], this.matrix.getWidth(), mode);
