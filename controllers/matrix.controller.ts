@@ -79,6 +79,7 @@ export class MatrixController {
                 this.matrix.drawText(glyph.char, glyph.x, glyph.y);
             });
 
+            this.matrix.sync();
             await this.wait(200);
         });
     }

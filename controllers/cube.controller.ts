@@ -22,8 +22,6 @@ export class CubeController {
         let buffers: Array<Array<number>> = [];
         let step: number = 0;
 
-
-        
         if (topColors.length !== 4 || bottomColors.length !== 4) {
             throw new Error("Top and Bottom need 4 colors");
         }
@@ -52,8 +50,13 @@ export class CubeController {
             loop: loop
         }
 
-        this.matrix.setSaveState(cube);
-        this.matrix.drawBuffers(buffers, interval, loop);
+        try {
+            this.matrix.setSaveState(cube);
+            this.matrix.drawBuffers(buffers, interval, loop);
+        } catch (error) {
+            console.log(error);
+            return false
+        }
     }
 
     drawCube(colors: Array<(string | Color)>, mode: InterpolationMode) {
@@ -62,8 +65,14 @@ export class CubeController {
             buffer: buf,
         };
 
-        this.matrix.setSaveState(cube);
-        this.matrix.drawBuffer(buf);
+        try {
+            this.matrix.setSaveState(cube);
+            this.matrix.drawBuffer(buf);
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false
+        }
     }
 
     text(message: string, background: number, foreground: number) {
@@ -78,17 +87,20 @@ export class CubeController {
         for (const alignmentH of [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right]) {
             for (const alignmentV of [VerticalAlignment.Top, VerticalAlignment.Middle, VerticalAlignment.Bottom]) {
                 let glyphs: MappedGlyph[] = LayoutUtils.linesToMappedGlyphs(lines, font.height(), this.matrix.getWidth(), this.matrix.getHeight(), alignmentH, alignmentV);
-                
+
                 let save: MappedText = {
                     text: glyphs,
                     foreground: foreground,
-                    background:background,
+                    background: background,
                 };
 
-                this.matrix.setSaveState(save);
-
-                this.matrix.drawText(glyphs);
-                this.matrix.sync();
+                try {
+                    this.matrix.setSaveState(save);
+                    this.matrix.drawText(glyphs);
+                } catch (error) {
+                    console.log(error);
+                    return false
+                }
             }
         }
     }
@@ -114,21 +126,17 @@ export class CubeController {
         return this.cubeService.getAllCubes();
     }
 
-    setCube(userId: number, name: string, data: (Array<number> | Array<Array<number>> | MappedText), cubeId?: number, description?: string) {
-        let cube: CubeDto = {
-            name: name,
-            userId: userId,
-            data: data
-        }
+    createCube(cube: CubeDto) {
+        this.cubeService.createCube(cube)
+    }
 
-        description ? cube.description = description : null;
-        cubeId ? cube.id = cubeId : null;
+    updateCube(cube: CubeDto) {
+        let buf: any = this.matrix.getSaveState();
+        if (buf === null || buf === undefined) { return false; }
 
-        if (cube.id) { 
-            this.cubeService.updateCube(cube);
-        } else {
-            this.cubeService.createCube(cube)
-        }
+        cube.data = buf;
+
+        this.cubeService.updateCube(cube);
     }
 
     deleteCube(cubeId: number) {

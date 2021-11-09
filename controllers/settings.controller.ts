@@ -17,7 +17,7 @@ export class SettingsController {
         return this.matrixOptions;
     }
 
-    setCubeSettings(opts: MatrixOptions) {
+    setMatrixSettings(opts: MatrixOptions) {
         this.matrixOptions = opts;
         this.matrix.updateMatrixSettings(this.matrixOptions, this.runtimeOptions);
     }
