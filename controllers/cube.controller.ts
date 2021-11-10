@@ -6,6 +6,7 @@ import { Graident, MappedText } from '../common/types';
 import { CubeDto } from '../dto/cube.dto';
 import { CubeService } from '../service/cube.service';
 import { FindCursor, Document } from 'mongodb';
+import { Game } from './conways.game.controller';
 
 export class CubeController {
     private matrix: MatrixController;
@@ -16,6 +17,33 @@ export class CubeController {
         this.matrix = MatrixController.getInstance();
         this.cubeService = new CubeService();
         this.powerState = true;
+    }
+
+    conway(size?: number, forground?: number, background?: number) {
+        let boardSize: number = (size) ? size : (this.matrix.getHeight() > this.matrix.getWidth()) ? this.matrix.getHeight() : this.matrix.getWidth();
+        let fg: number  = (forground) ? forground : 0xFFFFFF;
+        let bg: number =  (background) ? background : 0x000000;
+
+        let cube: Array<Game> = []
+        for (let i = 0; i < 5; i++) {
+            cube.push(new Game(boardSize));
+        }
+
+        function callback(cube: Array<Game>): Array<number> {
+            let buf: Array<number> = [];
+
+            cube.forEach((game: Game )=> {
+                buf = buf.concat(game.step().flat());
+            });
+
+            return buf;
+        }
+
+        this.matrix.setForeground(fg);
+        this.matrix.setBackground(bg);
+        this.matrix.drawInfiniteAnimation(callback);
+
+        return true;
     }
 
     transition(topColors: Array<string>, bottomColors: Array<string>, mode: InterpolationMode, interval: number, steps: number, loop: boolean) {

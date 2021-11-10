@@ -81,6 +81,16 @@ export class CubeRoutes extends CommonRoutesConfig {
                 res.status(200).send(resp);
             });
 
+        this.app.route('/cube/conway')
+            .post((req: express.Request, res: express.Response) => {
+                let size: number = req.body.number;
+                let foreground: number = req.body.foreground;
+                let background: number = req.body.background;
+
+                let resp = this.cube.conway(size, foreground, background);
+                res.status(200).send(resp);
+            });
+
         this.app.route('/cube/text')
             .post((req: express.Request, res: express.Response) => {
                 let message: string = req.body.message;

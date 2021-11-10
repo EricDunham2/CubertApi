@@ -71,6 +71,24 @@ export class MatrixController {
         });
     }
 
+    drawInfiniteAnimation(callback: Function) {
+        (async () => {
+            try {
+                let buffer: Array<number> = callback()
+
+                this.matrix.afterSync(() => {
+                    this.matrix.drawBuffer(Buffer.from(buffer));
+                });
+
+                this.matrix.sync();
+
+                await this.wait(50);
+            } catch (error) {
+                console.log(`${__filename} caught: `, error);
+            }
+        });
+    }
+
     drawText(message: MappedGlyph[]) {
         console.log(`Drawing text`);
 
@@ -85,7 +103,7 @@ export class MatrixController {
     }
 
     afterSync(hook: SyncHook) {
-
+        
     }
 
     sync() {
