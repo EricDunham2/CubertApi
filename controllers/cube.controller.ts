@@ -19,13 +19,13 @@ export class CubeController {
         this.powerState = true;
     }
 
-    conway(size?: number, forground?: number, background?: number) {
+    conway(panels: number, size?: number, forground?: number, background?: number) {
         let boardSize: number = (size) ? size : (this.matrix.getHeight() > this.matrix.getWidth()) ? this.matrix.getHeight() : this.matrix.getWidth();
         let fg: number  = (forground) ? forground : 0xFFFFFF;
         let bg: number =  (background) ? background : 0x000000;
 
         let cube: Array<Game> = []
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < panels; i++) {
             cube.push(new Game(boardSize));
         }
 
