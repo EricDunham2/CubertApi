@@ -9,9 +9,9 @@ import {
 } from 'rpi-led-matrix';
 
 export const matrixOptions: MatrixOptions = {
-  brightness: 100,
+  brightness: 50,
   chainLength: 1,
-  cols: 32,
+  cols: 64,
   disableHardwarePulsing: false,
   hardwareMapping: GpioMapping.Regular,
   inverseColors: false,
@@ -19,11 +19,11 @@ export const matrixOptions: MatrixOptions = {
   multiplexing: MuxType.Direct,
   parallel: 1,
   pixelMapperConfig: '',
-  pwmBits: 11,
+  pwmBits: 7,
   pwmDitherBits: 0,
   pwmLsbNanoseconds: 130,
   rowAddressType: RowAddressType.Direct,
-  rows: 32,
+  rows: 64,
   scanMode: ScanMode.Progressive,
   showRefreshRate: false,
 };
