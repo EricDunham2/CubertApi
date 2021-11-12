@@ -32,15 +32,10 @@ export class MatrixController {
 
     drawBuffer(buffer: Array<number>) {
         console.log(`Drawing buffer`);
-
         (async () => {
             try {
-                this.matrix.afterSync(() => {
-                    this.matrix.drawBuffer(Buffer.from(buffer));
-                });
-
+                this.matrix.drawBuffer(Buffer.from(buffer));
                 this.matrix.sync();
-
                 await this.wait(Infinity);
             } catch (error) {
                 console.log(`${__filename} caught: `, error);
