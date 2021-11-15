@@ -25,6 +25,7 @@ export class CubeController {
         let bg: number =  (background) ? background : 0x000000;
 
         let cube: Array<Game> = []
+
         for (let i = 0; i < panels; i++) {
             cube.push(new Game(boardSize));
         }
@@ -67,7 +68,7 @@ export class CubeController {
             colors.push(blend3(step));
             colors.push(blend4(step));
 
-            buffers.push(cubeGradient(colors, mode, this.matrix.getWidth()));
+            buffers.push(cubeGradient(colors, mode, this.matrix.getWidth()).flat(1));
 
             step++;
         }
@@ -95,7 +96,7 @@ export class CubeController {
 
         try {
             this.matrix.setSaveState(cube);
-            this.matrix.drawBuffer(buf);
+            this.matrix.drawBuffer(buf.flat(1));
             return true;
         } catch (error) {
             console.log(error);
