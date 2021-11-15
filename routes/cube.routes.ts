@@ -17,22 +17,26 @@ export class CubeRoutes extends CommonRoutesConfig {
     }
 
     configureRoutes() {
-        this.app.route('/cube')
+        let router = express.Router();
+        let actionRouter = express.Router({mergeParams: true});
+
+        router.use('/action', actionRouter);
+
+        router.route('/')
             .get((req: express.Request, res: express.Response) => {
                 res.status(200).send('List of cube options');
             })
             .post((req: express.Request, res: express.Response) => {
-
                 res.status(200).send('Post to cube');
             });
 
-        this.app.route('/cube/cubes')
+        router.route('/cube/cubes')
             .get((req: express.Request, res: express.Response) => {
                 this.cube.getAllCubes();
             });
 
         //CRUD for cube
-        this.app.route('/cube/:cubeId')
+        router.route('/cube/:cubeId')
             .all((req: express.Request, res: express.Response, next: express.NextFunction) => {
                 next();
             })
@@ -40,7 +44,7 @@ export class CubeRoutes extends CommonRoutesConfig {
                 this.debugLog(`Getting cube with id ${req.params.cubeId}`);
                 let cubeId: number = parseInt(req.params.cubeId as string)
 
-                //this.cube.getCube(cubeId);
+                this.cube.getCube(cubeId);
                 res.status(200).send(`GET request for id ${req.params.cubeId}`);
             })
             .post((req: express.Request, res: express.Response) => {
@@ -49,7 +53,6 @@ export class CubeRoutes extends CommonRoutesConfig {
                 let cube: CubeDto = req.body as CubeDto;
                 this.cube.createCube(cube);
 
-                //this.cube.createCube(cubeId);
                 res.status(200).send(`POST request for id ${req.params.cubeId}`);
             })
             .patch((req: express.Request, res: express.Response) => {
@@ -68,7 +71,13 @@ export class CubeRoutes extends CommonRoutesConfig {
                 res.status(200).send(`DELETE request for id ${req.params.cubeId}`);
             });
 
-        this.app.route('/cube/transition')
+        actionRouter.route('/')
+            .get(function (req, res) {
+                res.status(200)
+                    .send('hello items from user ');
+            });
+
+        actionRouter.route('/transition')
             .post((req: express.Request, res: express.Response) => {
                 let top: Array<string> = req.body.top;
                 let bottom: Array<string> = req.body.bottom;
@@ -81,7 +90,7 @@ export class CubeRoutes extends CommonRoutesConfig {
                 res.status(200).send(resp);
             });
 
-        this.app.route('/cube/conway')
+        actionRouter.route('/conway')
             .post((req: express.Request, res: express.Response) => {
                 let size: number = req.body.number;
                 let foreground: number = req.body.foreground;
@@ -92,17 +101,17 @@ export class CubeRoutes extends CommonRoutesConfig {
                 res.status(200).send(resp);
             });
 
-        this.app.route('/cube/text')
+        actionRouter.route('/text')
             .post((req: express.Request, res: express.Response) => {
                 let message: string = req.body.message;
                 let background: number = req.body.interval;
                 let foreground: number = req.body.steps;
 
                 let resp = this.cube.text(message, background, foreground);
-                res.status(200).send(resp);
+                res.status(200).send("");
             });
 
-        this.app.route('/cube/cube')
+        actionRouter.route('/cube')
             .post((req: express.Request, res: express.Response) => {
                 let colors: Array<string> = req.body.colors;
                 let mode: InterpolationMode = req.body.mode;
@@ -111,10 +120,12 @@ export class CubeRoutes extends CommonRoutesConfig {
                 res.status(200).send(resp);
             });
 
-        this.app.route('/cube/power')
+        actionRouter.route('/power')
             .post((req: express.Request, res: express.Response) => {
                 this.cube.power();
             });
+
+        this.app.use("/cube", router);
 
         return this.app;
     }
