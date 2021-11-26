@@ -97,7 +97,7 @@ export class CubeRoutes extends CommonRoutesConfig {
                 let background: number = req.body.background;
                 let panels: number = req.body.panels;
 
-                let resp = this.cube.conway(size, foreground, background, panels);
+                let resp = this.cube.conway(panels, size, foreground, background);
                 res.status(200).send(resp);
             });
 
