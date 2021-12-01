@@ -66,22 +66,25 @@ export class MatrixController {
         });
     }
 
-    drawInfiniteAnimation(callback: Function) {
-        (async () => {
+    drawInfiniteAnimation(payload: any) {
+        //(async () => {
             try {
-                let buffer: Array<number> = callback()
+                let callback = payload["fn"];
+                let seed = payload["params"];
 
                 this.matrix.afterSync(() => {
+                    let buffer: Array<number> = callback(seed)
+
                     this.matrix.drawBuffer(Buffer.from(buffer));
                 });
 
                 this.matrix.sync();
 
-                await this.wait(50);
+                //await this.wait(50);
             } catch (error) {
                 console.log(`${__filename} caught: `, error);
             }
-        });
+        //});
     }
 
     drawText(message: MappedGlyph[]) {

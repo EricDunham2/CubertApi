@@ -20,29 +20,40 @@ export class CubeController {
     }
 
     conway(panels: number, size?: number, forground?: number, background?: number) {
-        let boardSize: number = (size) ? size : (this.matrix.getHeight() > this.matrix.getWidth()) ? this.matrix.getHeight() : this.matrix.getWidth();
+
+        let boardSize: number = 64; //(size) ? size : (this.matrix.getHeight() > this.matrix.getWidth()) ? this.matrix.getHeight() : this.matrix.getWidth();
         let fg: number  = (forground) ? forground : 0xFFFFFF;
         let bg: number =  (background) ? background : 0x000000;
 
         let cube: Array<Game> = []
 
+        console.log("Creating the game of life")
+
         for (let i = 0; i < panels; i++) {
             cube.push(new Game(boardSize));
         }
 
-        function callback(cube: Array<Game>): Array<number> {
+        function callback(params: any): Array<number> {
+            console.log(params)
+
+            let games = params[0];
             let buf: Array<number> = [];
 
-            cube.forEach((game: Game )=> {
+            games.forEach((game: Game ) => {
                 buf = buf.concat(game.step().flat());
             });
 
             return buf;
         }
 
+        let payload = {
+            "fn": callback,
+            "params": [cube]
+        }
+
         this.matrix.setForeground(fg);
         this.matrix.setBackground(bg);
-        this.matrix.drawInfiniteAnimation(callback);
+        this.matrix.drawInfiniteAnimation(payload);
 
         return true;
     }
