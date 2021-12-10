@@ -22,6 +22,11 @@ export class CubeRoutes extends CommonRoutesConfig {
 
         router.use('/action', actionRouter);
 
+        router.route('/ping')
+            .get((req: express.Request, res: express.Response) => {
+                res.status(200);
+            });
+
         router.route('/')
             .get((req: express.Request, res: express.Response) => {
                 res.status(200).send('List of cube options');
@@ -87,7 +92,7 @@ export class CubeRoutes extends CommonRoutesConfig {
                 let loop: boolean = req.body.loop;
 
                 let resp = this.cube.transition(top, bottom, mode, interval, steps, loop);
-                res.status(200).send(resp);
+                res.status(resp.code).send(resp.msg);
             });
 
         actionRouter.route('/conway')
@@ -98,7 +103,7 @@ export class CubeRoutes extends CommonRoutesConfig {
                 let panels: number = req.body.panels;
 
                 let resp = this.cube.conway(panels, size, foreground, background);
-                res.status(200).send(resp);
+                res.status(resp.code).send(resp.msg);
             });
 
         actionRouter.route('/text')
@@ -108,7 +113,7 @@ export class CubeRoutes extends CommonRoutesConfig {
                 let foreground: number = req.body.steps;
 
                 let resp = this.cube.text(message, background, foreground);
-                res.status(200).send("");
+                res.status(resp.code).send(resp.msg);
             });
 
         actionRouter.route('/cube')
@@ -117,12 +122,13 @@ export class CubeRoutes extends CommonRoutesConfig {
                 let mode: InterpolationMode = req.body.mode;
 
                 let resp = this.cube.drawCube(colors, mode);
-                res.status(200).send(resp);
+                res.status(resp.code).send(resp.msg);
             });
 
         actionRouter.route('/power')
             .post((req: express.Request, res: express.Response) => {
-                this.cube.power();
+                let resp = this.cube.power();
+                res.status(resp.code).send(resp.msg);
             });
 
         this.app.use("/cube", router);

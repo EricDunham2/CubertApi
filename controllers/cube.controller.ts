@@ -21,41 +21,45 @@ export class CubeController {
 
     conway(panels: number, size?: number, forground?: number, background?: number) {
 
-        let boardSize: number = 64; //(size) ? size : (this.matrix.getHeight() > this.matrix.getWidth()) ? this.matrix.getHeight() : this.matrix.getWidth();
-        let fg: number  = (forground) ? forground : 0xFFFFFF;
-        let bg: number =  (background) ? background : 0x000000;
+        try {
+            let boardSize: number = 64; //(size) ? size : (this.matrix.getHeight() > this.matrix.getWidth()) ? this.matrix.getHeight() : this.matrix.getWidth();
+            let fg: number  = (forground) ? forground : 0xFFFFFF;
+            let bg: number =  (background) ? background : 0x000000;
 
-        let cube: Array<Game> = []
+            let cube: Array<Game> = []
 
-        console.log("Creating the game of life")
+            console.log("Creating the game of life")
 
-        for (let i = 0; i < panels; i++) {
-            cube.push(new Game(boardSize));
+            for (let i = 0; i < panels; i++) {
+                cube.push(new Game(boardSize));
+            }
+
+            function callback(params: any): Array<number> {
+                console.log(params)
+
+                let games = params[0];
+                let buf: Array<number> = [];
+
+                games.forEach((game: Game ) => {
+                    buf = buf.concat(game.step().flat());
+                });
+
+                return buf;
+            }
+
+            let payload = {
+                "fn": callback,
+                "params": [cube]
+            }
+
+            this.matrix.setForeground(fg);
+            this.matrix.setBackground(bg);
+            this.matrix.drawInfiniteAnimation(payload);
+        } catch (err) {
+            return {code: 500, msg: err};
         }
 
-        function callback(params: any): Array<number> {
-            console.log(params)
-
-            let games = params[0];
-            let buf: Array<number> = [];
-
-            games.forEach((game: Game ) => {
-                buf = buf.concat(game.step().flat());
-            });
-
-            return buf;
-        }
-
-        let payload = {
-            "fn": callback,
-            "params": [cube]
-        }
-
-        this.matrix.setForeground(fg);
-        this.matrix.setBackground(bg);
-        this.matrix.drawInfiniteAnimation(payload);
-
-        return true;
+        return {code: 200, msg: `Conway => Board Size: ${size}}, Panels: ${panels}, Foreground: ${forground}, Background: ${background}`};
     }
 
     transition(topColors: Array<string>, bottomColors: Array<string>, mode: InterpolationMode, interval: number, steps: number, loop: boolean) {
@@ -93,10 +97,11 @@ export class CubeController {
         try {
             this.matrix.setSaveState(cube);
             this.matrix.drawBuffers(buffers, interval, loop);
-        } catch (error) {
-            console.log(error);
-            return false
+        } catch (err) {
+            return {code: 500, msg: err};
         }
+
+        return {code:200, msg: "Trasitioning"};
     }
 
     drawCube(colors: Array<(string | Color)>, mode: InterpolationMode) {
@@ -108,11 +113,11 @@ export class CubeController {
         try {
             this.matrix.setSaveState(cube);
             this.matrix.drawBuffer(buf.flat(1));
-            return true;
-        } catch (error) {
-            console.log(error);
-            return false
+        } catch (err) {
+            return {code: 500, msg: err}
         }
+
+        return {code: 200, msg:  "Drawing cube"}
     }
 
     text(message: string, background: number, foreground: number) {
@@ -124,36 +129,43 @@ export class CubeController {
         this.matrix.setForeground(foreground);
         this.matrix.setBackground(background);
 
-        for (const alignmentH of [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right]) {
-            for (const alignmentV of [VerticalAlignment.Top, VerticalAlignment.Middle, VerticalAlignment.Bottom]) {
-                let glyphs: MappedGlyph[] = LayoutUtils.linesToMappedGlyphs(lines, font.height(), this.matrix.getWidth(), this.matrix.getHeight(), alignmentH, alignmentV);
 
-                let save: MappedText = {
-                    text: glyphs,
-                    foreground: foreground,
-                    background: background,
-                };
+        try {
+            for (const alignmentH of [HorizontalAlignment.Left, HorizontalAlignment.Center, HorizontalAlignment.Right]) {
+                for (const alignmentV of [VerticalAlignment.Top, VerticalAlignment.Middle, VerticalAlignment.Bottom]) {
+                    let glyphs: MappedGlyph[] = LayoutUtils.linesToMappedGlyphs(lines, font.height(), this.matrix.getWidth(), this.matrix.getHeight(), alignmentH, alignmentV);
 
-                try {
+                    let save: MappedText = {
+                        text: glyphs,
+                        foreground: foreground,
+                        background: background,
+                    };
+
                     this.matrix.setSaveState(save);
                     this.matrix.drawText(glyphs);
-                } catch (error) {
-                    console.log(error);
-                    return false
                 }
             }
+        } catch (err) {
+            return {code: 500, msg: err}
         }
+
+        return {code: 200, msg: "Drawing Text"}
     }
 
     power() {
         this.powerState = !this.powerState;
 
-        if (!this.powerState) {
-            this.matrix.clear();
-        } else {
-            this.matrix.loadSaveState();
-            return true;
+        try {
+            if (!this.powerState) {
+                this.matrix.clear();
+            } else {
+                this.matrix.loadSaveState();
+            }
+        } catch (err) {
+            return {code: 500, msg: err}
         }
+
+        return {code: 200, msg: `Powerstate: ${this.powerState}`};
     }
 
     getCube(cubeId: number): (FindCursor<Document> | null) {

@@ -40,7 +40,7 @@ export class MatrixController {
             } catch (error) {
                 console.log(`${__filename} caught: `, error);
             }
-        });
+        })();
     }
 
     drawBuffers(buffers: Array<Array<number>>, interval: number, loop: boolean) {
@@ -63,11 +63,11 @@ export class MatrixController {
             } catch (error) {
                 console.log(`${__filename} caught: `, error);
             }
-        });
+        })();
     }
 
     drawInfiniteAnimation(payload: any) {
-        //(async () => {
+        (async () => {
             try {
                 let callback = payload["fn"];
                 let seed = payload["params"];
@@ -80,11 +80,11 @@ export class MatrixController {
 
                 this.matrix.sync();
 
-                //await this.wait(50);
+                await this.wait(50);
             } catch (error) {
                 console.log(`${__filename} caught: `, error);
             }
-        //});
+        })();
     }
 
     drawText(message: MappedGlyph[]) {
@@ -97,7 +97,7 @@ export class MatrixController {
 
             this.matrix.sync();
             await this.wait(200);
-        });
+        })();
     }
 
     afterSync(hook: SyncHook) {
